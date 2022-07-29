@@ -100,6 +100,8 @@ public class Gun : MonoBehaviour
 
             lastFireTime = Time.time;
             Shot(fireTransform.position, fireDirection);
+
+            return true;
         }
         return false;
     }
@@ -124,6 +126,10 @@ public class Gun : MonoBehaviour
                 damageMessage.hitNormal = hit.normal;
 
                 target.ApplyDamage(damageMessage);
+            }
+            else
+            {
+                EffectManager.Instance.PlayHitEffect(hit.point, hit.normal, hit.transform);
             }
             hitPosition = hit.point;
         }
