@@ -111,12 +111,67 @@ public class Enemy : LivingEntity
 
     private void Update()
     {
+        if (dead)
+        {
+            return;
+        }
 
+        if(state == State.Tracking && 
+            Vector3.Distance(targetEntity.transform.position, transform.position) <= attackDistance)
+        {
+            BeginAttack();
+        }
+
+        animator.SetFloat("Speed", agent.desiredVelocity.magnitude);
     }
 
     private void FixedUpdate()
     {
         if (dead) return;
+
+        if(state == State.AttackBegin || state == State.Attacking)
+        {
+            var lookRotation = Quaternion.LookRotation(targetEntity.transform.position - transform.position);
+            var targetAngleY = lookRotation.eulerAngles.y;
+
+            targetAngleY = Mathf.SmoothDamp(transform.eulerAngles.y, targetAngleY, ref turnSmoothVelocity, turnSmoothTime);
+            transform.eulerAngles = Vector3.up * targetAngleY;
+        }
+
+        if(state == State.Attacking)
+        {
+            //좀비가 빠르게 움직일때 플레이어가 공격범위 안에 있는 것을 인식하지 못하는 것을 방지하기위해
+            //좀비가 움직일때의 공격범위를 체크하는 코드
+            var direction = transform.forward;
+            var deltaDistance = agent.velocity.magnitude * Time.deltaTime;
+
+            var size = Physics.SphereCastNonAlloc(attackRoot.position, attackRadius, direction, hits, deltaDistance, whatIsTarget);
+
+            for (int i = 0; i < size; i++)
+            {
+                var attackTargetEntity = hits[i].collider.GetComponent<LivingEntity>();
+
+                if(attackTargetEntity != null && !lastAttackedTargets.Contains(attackTargetEntity))
+                {
+                    var message = new DamageMessage();
+                    message.amount = damage;
+                    message.damager = gameObject;
+                    
+                    //공격범위가 움직임을 예상해서 움직이기 전과 그 후 까지 감지되었던 
+                    //raycasthit의 point는 vector3.zero가 됨 그걸 방지하기 위한 코드
+                    if (hits[i].distance <= 0f)
+                        message.hitPoint = attackRoot.position;
+                    else
+                        message.hitPoint = hits[i].point;
+
+                    message.hitNormal = hits[i].normal;
+
+                    attackTargetEntity.ApplyDamage(message);
+                    lastAttackedTargets.Add(attackTargetEntity);
+                    break;
+                }
+            }
+        }
     }
 
     private IEnumerator UpdatePath()
@@ -172,7 +227,7 @@ public class Enemy : LivingEntity
                     }
                 }
             }
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(0.05f);
         }
     }
 
@@ -206,7 +261,28 @@ public class Enemy : LivingEntity
     }
 
     private bool IsTargetOnSight(Transform target)
-    {
+    { 
+        var direction = target.position - eyeTransform.position;
+
+        //수평 방향으로만 각도를 구하기 위해 y값을 일치 시켜줌
+        direction.y = eyeTransform.forward.y;
+        
+        if(Vector3.Angle(direction, eyeTransform.forward) > fieldOfView * 0.5f)
+        {
+            return false;
+        }
+
+        //가리는 물체가 있는지 확인 할때는 y값을 원래대로 바꿔주어야 정확한 계산이 가능
+        direction = target.position - eyeTransform.position;
+
+        RaycastHit hit;
+        if(Physics.Raycast(eyeTransform.position, direction, out hit, viewDistance, whatIsTarget))
+        {
+            if(hit.transform == target)
+            {
+                return true;
+            }
+        }
         return false;
     }
 
