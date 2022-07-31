@@ -11,7 +11,7 @@ public class LivingEntity : MonoBehaviour, IDamageable
     
     private const float minTimeBetDamaged = 0.1f;
     private float lastDamagedTime;
-
+     
     protected bool IsInvulnerabe
     {
         get
