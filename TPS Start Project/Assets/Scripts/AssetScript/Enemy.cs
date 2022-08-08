@@ -43,7 +43,7 @@ public class Enemy : LivingEntity
     public float viewDistance = 10f;
     public float patrolSpeed = 3f;
 
-    [HideInInspector] public LivingEntity targetEntity;
+    public LivingEntity targetEntity;
     public LayerMask whatIsTarget;
 
 
@@ -235,6 +235,13 @@ public class Enemy : LivingEntity
     {
         if (!base.ApplyDamage(damageMessage)) return false;
 
+        if(targetEntity == null)
+        {
+            targetEntity = damageMessage.damager.GetComponent<LivingEntity>();
+        }
+        EffectManager.Instance.PlayHitEffect(damageMessage.hitPoint, damageMessage.hitNormal, transform, EffectManager.EffectType.Flesh);
+        audioPlayer.PlayOneShot(hitClip);
+
         return true;
     }
 
@@ -255,7 +262,14 @@ public class Enemy : LivingEntity
 
     public void DisableAttack()
     {
-        state = State.Tracking;
+        if (hasTarget)
+        {
+            state = State.Tracking;
+        }
+        else
+        {
+            state = State.Patrol;
+        }
 
         agent.isStopped = false;
     }
@@ -288,6 +302,15 @@ public class Enemy : LivingEntity
 
     public override void Die()
     {
+        base.Die();
 
+        GetComponent<Collider>().enabled = false;
+
+        agent.enabled = false;
+
+        animator.applyRootMotion = true;
+        animator.SetTrigger("Die");
+
+        audioPlayer.PlayOneShot(deathClip);
     }
 }
