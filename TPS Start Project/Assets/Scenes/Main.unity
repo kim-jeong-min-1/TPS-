@@ -2237,10 +2237,15 @@ PrefabInstance:
       propertyPath: m_Name
       value: Zombie
       objectReference: {fileID: 0}
-    - target: {fileID: 5834797528221337925, guid: 36bf49fc8901ce24993c2a77f1713960,
+    - target: {fileID: 5834797528221337926, guid: 36bf49fc8901ce24993c2a77f1713960,
         type: 3}
-      propertyPath: whatIsTarget.m_Bits
-      value: 256
+      propertyPath: m_AutoRepath
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5834797528221337926, guid: 36bf49fc8901ce24993c2a77f1713960,
+        type: 3}
+      propertyPath: m_AutoTraverseOffMeshLink
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8384889482306546708, guid: 36bf49fc8901ce24993c2a77f1713960,
         type: 3}
