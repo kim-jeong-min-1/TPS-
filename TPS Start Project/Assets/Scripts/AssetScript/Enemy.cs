@@ -286,9 +286,6 @@ public class Enemy : LivingEntity
             return false;
         }
 
-        //가리는 물체가 있는지 확인 할때는 y값을 원래대로 바꿔주어야 정확한 계산이 가능
-        direction = target.position - eyeTransform.position;
-
         RaycastHit hit;
         if(Physics.Raycast(eyeTransform.position, direction, out hit, viewDistance, whatIsTarget))
         {
